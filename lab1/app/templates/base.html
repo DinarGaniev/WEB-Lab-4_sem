@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <!-- Обязательные метатеги -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css')}}" >
+    <title>
+    {% if title %}
+    {{ title }}
+    {% else %}
+    Лабораторная работа №1
+    {% endif %}
+    </title>
+</head>
+
+<body class="d-flex flex-column">
+    <header>
+        {% block header %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ url_for('index') }}">Лабораторная работа №1</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                    data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('posts', page=1) }}">Посты</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('about') }}">Об авторе</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- <ul class="nav">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Главная</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('posts', page=1) }}">Посты</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('about') }}">Об авторе</a>
+            </li>
+        </ul> -->
+        {% endblock %}
+    </header>
+    <main>
+        <div class="container">
+            {% block content %}
+            <h1>Содержимое по умолчанию</h1>
+            {% endblock %}
+        </div>
+    </main>
+    <footer class="footer border-top border-4 bg-dark mt-auto">
+        <div class="container text-center py-3 fw-bold">
+            <p class="footer-text">Ганиев Динар, 201-351</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+        crossorigin="anonymous"></script>
+
+    <!-- <script src="{{ url_for('static', filename='main.js')}}"></script> -->
+</body>
+
+</html>

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-2 mt-2">{{ title }}</h1>
+<p>{{ post['author'] }} {{ post['date'].strftime('%d.%m.%Y')}}</p>
+<div class="d-flex flex-column">
+    <img src="{{ url_for('static', filename='images/' ~ post.image_filename)}}" class="card-img-top" alt="...">
+    <p class="mt-2 mb-2 ">{{ post['text'] }}</p>
+    <div class="border border-2 mt-4 mb-2">
+        <label for="comment" class="form-label bg-light w-100 container fw-bold p-2">Оставьте комментарий</label>
+        <form class="container mb-2 mt-2">
+            <textarea class="form-control p-0" name="comment" id="comment" cols="10" rows="3"></textarea>
+            <button type="button" class="btn btn-primary mt-3">Отправить</button>
+        </form>
+    </div>
+    <div class="m-4">
+        <div class="d-flex">
+            <div class="flex-shrink-0">
+                <img src="{{ url_for('static', filename='images/avatar.jpg') }}" class="rounded-circle" width="80"
+                    height="80" alt="Sample Image">
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h5>{{ post.comment_author }}</h5>
+                <p>{{ post.comment_text }}</p>
+                <div class="d-flex mt-4">
+                    <div class="flex-shrink-0">
+                        <img src="{{ url_for('static', filename='images/avatar.jpg') }}" class="rounded-circle"
+                            width="80" height="80" alt="Sample Image">
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5>{{ post.reply_author }}</h5>
+                        <p>{{ post.reply_text }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="flex-shrink-0">
+                <img src="{{ url_for('static', filename='images/avatar.jpg') }}" class="rounded-circle" width="80"
+                    height="80" alt="Sample Image">
+            </div> -->
+            <!-- <div class="flex-grow-1 ms-3">
+                <h5>{{ post.comment }}<small class="text-muted"><i>Posted on January 10, 2021</i></small></h5>
+                <p>Excellent feature! I love it. One day I'm definitely going to put this Bootstrap component into use
+                    and I'll let you know once I do.</p>
+                <div class="d-flex mt-4">
+                    <div class="flex-shrink-0">
+                        <img src="{{ url_for('static', filename='images/avatar.jpg') }}" class="rounded-circle"
+                            width="80" height="80" alt="Sample Image">
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5>Clark Kent <small class="text-muted"><i>Posted on January 12, 2021</i></small></h5>
+                        <p>Thanks, you found this component useful. Don't forget to check out other Bootstrap components
+                            as well. They're also very useful.</p>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</div>
+{% endblock %}

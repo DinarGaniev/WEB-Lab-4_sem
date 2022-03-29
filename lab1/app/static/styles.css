@@ -1,0 +1,11 @@
+.avatar {
+    max-width: 100%;
+}
+
+html, body {
+    height: 100%;
+}
+
+.footer-text {
+    color: white;
+}
