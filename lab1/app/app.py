@@ -16,15 +16,14 @@ images_ids = [
     'cab5b7f2-774e-4884-a200-0c0180fa777f'
  ]
 
-# def generate_comment(replies=True):
-#     comments = []
-#     for i in range(random.randint(1, 3)):
-#         comment = { 'author': fake.name(), 'text': fake.text() }
-#         if replies:
-#             comment_reply = generate_comment(replies=False)
-#             comments.append(comment_reply)
-#         comments.append(comment)
-#     return comments
+def generate_comment(replies=True):
+    comments = []
+    for i in range(random.randint(1, 3)):
+        comment = { 'author': fake.name(), 'text': fake.text() }
+        if replies:
+            comment['replies'] = generate_comment(replies=False)
+        comments.append(comment)
+    return comments
 
 def generate_post(index):
     return{
@@ -33,10 +32,11 @@ def generate_post(index):
         'text': fake.paragraph(nb_sentences=100),
         'date': fake.date_time_between(start_date='-2y', end_date='now'),
         'image_filename': f'{images_ids[index]}.jpg',
-        'comment_author': fake.name(),
-        'comment_text': fake.text(),
-        'reply_author': fake.name(),
-        'reply_text': fake.text()
+        'comments': generate_comment()
+        # 'comment_author': fake.name(),
+        # 'comment_text': fake.text(),
+        # 'reply_author': fake.name(),
+        # 'reply_text': fake.text()
     }
 
 posts_list= sorted([generate_post(i) for i in range(5)], key=lambda x: x['date'], reverse=True)
