@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form method="POST">
+        <label for="inputPhoneNumber" class="form-label">Номер телефона</label>
+        <input type="text" name="phone" id="inputPhoneNumber" class="form-control mb-2"  value="{{ request.form.phone }}" aria-describedby="inputPhoneNumber">
+        <div class="col-12">
+            <button class="btn btn-primary" type="submit">Отправить Номер</button>
+        </div>
+    </form>
+    {% if request.method == 'POST' and error_msg %}
+          <p style="color: red;">{{ error_msg }}</p>
+     {% endif %}
+{% endblock %}

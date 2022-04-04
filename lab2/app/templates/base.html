@@ -55,6 +55,10 @@
                             <a class="nav-link {% if request.endpoint == 'calc' %}active{% endif %}" aria-current="page"
                                 href="{{ url_for('calc') }}">Калькулятор</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'phone' %}active{% endif %}" aria-current="page"
+                                href="{{ url_for('phone') }}">Ввод номера телефона</a>
+                        </li>
                     </ul>
 
                 </div>
