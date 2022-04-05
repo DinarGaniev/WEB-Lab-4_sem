@@ -1,6 +1,3 @@
-from crypt import methods
-from distutils.log import error
-from tabnanny import check
 from flask import Flask, render_template, request, make_response
 import operator as op
 
@@ -80,12 +77,13 @@ def phone():
                 check = False
                 error_invalid_symbol = "Недопустимый ввод. В номере телефона встречаются недопустимые символы"
         if count == 10 and not(phone.startswith('8') or phone.startswith('+7')) and check == True:
-            count = count + 1
-            result = '8' + result
+            result = '8-' + result[0:3] + '-' + result[3:6] + '-' + result[6:8] + '-' + result[8:10]
         elif count == 11 and (phone.startswith('8') or phone.startswith('+7')) and check == True:
-            pass
-        elif count != 11:
+            result = "8-" + result[1:4] + '-' + result[4:7] + '-' + result[7:9] + '-' + result[9:11]
+        elif count != 10 and not(phone.startswith('8') or phone.startswith('+7')) and check == True:
             check = False
             error_number_of_digits = 'Недопустимый ввод. Неверное количество цифр.'
-        result = "8-" + result[1:4] + '-' + result[4:7] + '-' + result[7:9] + '-' + result[9:11]
+        elif count != 11 and (phone.startswith('8') or phone.startswith('+7')) and check == True:
+            check = False
+            error_number_of_digits = 'Недопустимый ввод. Неверное количество цифр.'
     return render_template('phone.html', error_invalid_symbol=error_invalid_symbol, error_number_of_digits=error_number_of_digits, result=result)
