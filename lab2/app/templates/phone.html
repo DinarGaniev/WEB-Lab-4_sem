@@ -1,14 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <form method="POST">
-        <label for="inputPhoneNumber" class="form-label">Номер телефона</label>
-        <input type="text" name="phone" id="inputPhoneNumber" class="form-control mb-2"  value="{{ request.form.phone }}" aria-describedby="inputPhoneNumber">
-        <div class="col-12">
-            <button class="btn btn-primary" type="submit">Отправить Номер</button>
+<form method="POST" class="text-center needs-validation" novalidate>
+    <div class="d-flex flex-column has-validation">
+        <label for="inputPhoneNumber"
+            class="form-label mt-5"><h1>Введите номер телефона</h1></label>
+        <input type="text" name="phone" id="inputPhoneNumber" class="form-control {% if request.method == 'POST' and (error_number_of_digits or error_invalid_symbol) %}is-invalid{% endif %}" value="{{ request.form.phone }}" aria-describedby="inputPhoneNumber">
+        <div>
+            <button class="btn btn-primary mt-4 mb-4" type="submit">Отправить номер</button>
         </div>
-    </form>
-    {% if request.method == 'POST' and error_msg %}
-          <p style="color: red;">{{ error_msg }}</p>
-     {% endif %}
+        <div class="{% if request.method == 'POST' and (error_number_of_digits or error_invalid_symbol) %}invalid-feedback{% endif %}">
+            {% if request.method == 'POST' and error_invalid_symbol %}
+                <p>{{ error_invalid_symbol }}</p>
+            {% endif %}
+            {% if request.method == 'POST' and error_number_of_digits %}
+                <p>{{ error_number_of_digits }}</p>
+            {% endif %}
+            {% if request.method == 'POST' and not(error_number_of_digits or error_invalid_symbol) %}
+                <p>{{ result }}</p>
+            {% endif %}
+        </div>
+    </div>
+</form>
 {% endblock %}

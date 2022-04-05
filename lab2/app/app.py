@@ -9,8 +9,7 @@ application = app
 
 OPERATIONS = {'+': op.add, '-': op.sub, '*': op.mul, '/': op.truediv}
 
-check_phone = ['0', '1', '2', '3', '4', '5', '6',
-               '7', '8', '9', ' ', '(', ')', '-', '.', '+']
+check_phone = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '(', ')', '-', '.', '+']
 count_num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 
@@ -65,42 +64,28 @@ def cookies():
 
 @app.route('/phone', methods=['GET', 'POST'])
 def phone():
-    error_msg = None
+    error_invalid_symbol = None
+    error_number_of_digits = None
     phone = str(request.form.get('phone'))
     count = 0
     check = True
-    for element_phone in phone:
-        if element_phone in check_phone:
-            if element_phone in count_num:
-                count += 1
-        else:
+    result = ''
+    if request.method == 'POST':
+        for element_phone in phone:
+            if element_phone in check_phone:
+                if element_phone in count_num:
+                    count = count + 1
+                    result = result + element_phone
+            else:
+                check = False
+                error_invalid_symbol = "Недопустимый ввод. В номере телефона встречаются недопустимые символы"
+        if count == 10 and not(phone.startswith('8') or phone.startswith('+7')) and check == True:
+            count = count + 1
+            result = '8' + result
+        elif count == 11 and (phone.startswith('8') or phone.startswith('+7')) and check == True:
+            pass
+        elif count != 11:
             check = False
-        if count != 10 and (element_phone[0] != '+' or element_phone[0] != 8):
-            error_msg = "Недопустимый ввод. Неверное количество цифр."
-        if count != 11 and (element_phone[0] == '+' or element_phone[0] == 8):
-            error_msg = "Недопустимый ввод. Неверное количество цифр."
-        elif check == False:
-            error_msg = "Недопустимый ввод. В номере телефона встречаются недопустимые символы"
-    # if request.method == 'POST':
-    #     try:
-    #         phone = str(request.form.get('phone'))
-    #         count = 0
-    #         check = True
-    #         for element_phone in phone:
-    #             if element_phone in check_phone:
-    #                 if element_phone in count_num:
-    #                     count += 1
-    #             else:
-    #                 check = False
-    #         # if count != 10 or (count != 11 and (element_phone[0] != '+' or element_phone[0] != 8)):
-    #         #     error_msg = "Недопустимый ввод. Неверное количество цифр."
-    #         # elif check == False:
-    #         #     error_msg = "Недопустимый ввод. В номере телефона встречаются недопустимые символы"
-    #     except ValueError:
-    #         error_msg = "Недопустимый ввод. В номере телефона встречаются недопустимые символы"
-    #     #     if count != 10 or (count != 11 and (element_phone[0] != '+' or element_phone[0] != 8)):
-    #     #         error_msg = "Недопустимый ввод. Неверное количество цифр."
-    #     #     elif check == False:
-    #     #         error_msg = "Недопустимый ввод. В номере телефона встречаются недопустимые символы"
-
-    return render_template('phone.html', error_msg=error_msg)
+            error_number_of_digits = 'Недопустимый ввод. Неверное количество цифр.'
+        result = "8-" + result[1:4] + '-' + result[4:7] + '-' + result[7:9] + '-' + result[9:11]
+    return render_template('phone.html', error_invalid_symbol=error_invalid_symbol, error_number_of_digits=error_number_of_digits, result=result)
