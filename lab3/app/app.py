@@ -2,7 +2,7 @@ from flask import Flask, render_template, session, request, redirect, url_for, f
 from flask_login import LoginManager, UserMixin,  login_user, logout_user, login_required
 
 login_manager = LoginManager()
-login_manager.login_viev = 'login'
+login_manager.login_view = 'login'
 login_manager.login_message = 'Для доступа к данной странице необходимо пройти процедуру аутентификации'
 login_manager.login_message_category = 'warning'
 
