@@ -79,12 +79,12 @@ def phone():
         if count == 10:
             result = '8-' + result[0:3] + '-' + result[3:6] + '-' + result[6:8] + '-' + result[8:10]
             count += 1
-        elif count == 11 and (phone.startswith('8') or phone.startswith('+7')) and check == True:
+        elif count == 11 and (phone.startswith('8') or phone.startswith('+7') or result[0] == '8') and check == True:
             result = "8-" + result[1:4] + '-' + result[4:7] + '-' + result[7:9] + '-' + result[9:11]
-        elif count == 11 and not(phone.startswith('8') or phone.startswith('+7')) and check == True:
+        elif count == 11 and not(phone.startswith('8') or phone.startswith('+7') or result[0] == '8') and check == True:
             check = False
             error_number_of_digits = 'Недопустимый ввод. Начало не с той цифры.'
-        elif count != 11 and (phone.startswith('8') or phone.startswith('+7')) and check == True:
+        elif count != 11 and (phone.startswith('8') or phone.startswith('+7') or result[0] == '8') and check == True:
             check = False
             error_number_of_digits = 'Недопустимый ввод. Неверное количество цифр.'
     return render_template('phone.html', error_invalid_symbol=error_invalid_symbol, error_number_of_digits=error_number_of_digits, result=result)
