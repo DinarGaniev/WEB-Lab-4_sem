@@ -1,4 +1,4 @@
-#!/home/std/WEB-Lab-4_sem/lab3/venv/bin/python3
+#!/home/std/WEB-Lab-4_sem/lab4/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
