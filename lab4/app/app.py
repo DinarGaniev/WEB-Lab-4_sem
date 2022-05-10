@@ -3,6 +3,8 @@ from flask import Flask, render_template, session, request, redirect, url_for, f
 from flask_login import LoginManager, UserMixin,  login_user, logout_user, login_required
 from mysql_db import MySQL
 import mysql.connector as connector
+import hashlib
+import re
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -20,6 +22,103 @@ mysql = MySQL(app)
 
 CREATE_PARAMS = ['login', 'password', 'first_name', 'last_name', 'middle_name', 'role_id']
 UPDATE_PARAMS = ['first_name', 'last_name', 'middle_name', 'role_id']
+CHANGE_PASS_PARAMS = ['old_pass', 'new_pass', 'r_new_pass']
+
+def check_login(login):
+    if login == None:
+        return 'Поле не может быть пустым'
+    elif not check_login_req(login):
+        return 'Логин не соответствует требованиям'
+    return ''
+
+
+def check_login_req(login):
+    if (not re.search(r'[^a-zA-Z1-9]', login)) and len(login) >= 5:
+        return True
+    else:
+        return False
+
+def check_pass(passw):
+    err_msg = ''
+    if passw == None:
+        return 'Поле не может быть пустым'
+    check_pass_eq = 0
+    if not check_pass_len(passw):
+        check_pass_eq = check_pass_eq + 1
+    if not check_pass_oneletter(passw):
+        check_pass_eq = check_pass_eq + 1
+    if not check_pass_digit(passw):
+        check_pass_eq = check_pass_eq + 1
+    if not check_pass_specsymb(passw):
+        check_pass_eq = check_pass_eq + 1
+    if ' ' in passw:
+        check_pass_eq = check_pass_eq + 1
+    if check_pass_eq != 0:
+        return 'Пароль не соответствует требованиям'
+    return err_msg
+
+
+def check_pass_len(passw):
+    if len(passw) >= 8 and len(passw) <= 128:
+        return True
+    else:
+        return False
+
+
+def check_pass_oneletter(passw):
+    if passw.lower() != passw and passw.upper() != passw:
+        return True
+    else:
+        return False
+
+
+def check_pass_latkir_arabdigit(passw):
+    if re.search(r'[^a-zA-Zа-яА-Я1-9]', passw):
+        return True
+    else:
+        return False
+
+
+def check_pass_digit(passw):
+    if any(char.isdigit() for char in passw):
+        return True
+    else:
+        return False
+
+
+def check_pass_specsymb(passw):
+    check_str = '~!?@#$%^&*_-+()[]{}></\|\"\'.,:;'
+    for i in passw:
+        if not check_pass_latkir_arabdigit(i) or i in check_str:
+            return True
+        else:
+            return False
+    
+
+def check_last(passw):
+    if passw == None:
+        return 'Поле не может быть пустым'
+    return ''
+
+
+def check_first(passw):
+    if passw == None:
+        return 'Поле не может быть пустым'
+    return ''
+
+
+def check_middle(passw):
+    if passw == None:
+        return 'Поле не может быть пустым'
+    return ''
+
+
+def check_nulls(arr):
+    for i in arr:
+        if i != '':
+            return False
+    return True
+
 def request_params(params_list):
     params = {}
     for param_name in params_list:
@@ -83,13 +182,22 @@ def users():
 @app.route('/users/new')
 @login_required
 def new():
-    return render_template('users/new.html', user={}, roles=load_roles())
+    return render_template('users/new.html', user={}, roles=load_roles(), error_msg=['', '', '', '', ''])
 
 @app.route('/users/create', methods=['POST'])
 @login_required
 def create():
     params = request_params(CREATE_PARAMS)
     params['role_id'] = int(params['role_id']) if params['role_id'] else None
+    error_msg = ['' for i in range(len(params) - 1)]
+    error_msg[0] = check_login(params['login'])
+    error_msg[1] = check_pass(params['password'])
+    error_msg[2] = check_last(params['last_name'])
+    error_msg[3] = check_first(params['first_name'])
+    error_msg[4] = check_middle(params['middle_name'])
+    error_check = check_nulls(error_msg)
+    if error_check == False:
+        return render_template('users/new.html', user=params, roles=load_roles(), error_msg=error_msg)
     with mysql.connection.cursor(named_tuple=True) as cursor:
         try: 
             cursor.execute(
@@ -117,7 +225,7 @@ def edit(user_id):
     with mysql.connection.cursor(named_tuple=True) as cursor:
         cursor.execute('SELECT * FROM users WHERE id=%s;', (user_id,))
         user = cursor.fetchone()
-    return render_template('users/edit.html', user=user, roles=load_roles())
+    return render_template('users/edit.html', user=user, roles=load_roles(), error_msg=['', '', '', '', ''])
 
 @app.route('/users/<int:user_id>/update', methods=['POST'])
 @login_required
@@ -149,3 +257,55 @@ def delete(user_id):
             return redirect(url_for('users'))
     flash("Пользователь был успешно удалён!", 'success')
     return redirect(url_for('users'))
+
+@app.route('/users/<int:user_id>/new_pass')
+@login_required
+def new_pass(user_id):
+    return render_template('users/new_pass.html', error_msg=['', '', ''], user_id=user_id, user_pass={})
+
+@app.route('/users/<int:user_id>/change_pass', methods=['POST'])
+@login_required
+def change_pass(user_id):
+    params = request_params(CHANGE_PASS_PARAMS)
+    error_msg = ['' for i in range(len(params))]
+
+    if params['old_pass'] == None:
+        error_msg[0] = 'Поле не может быть пустым'
+    if params['new_pass'] == None:
+        error_msg[1] = 'Поле не может быть пустым'
+    if params['r_new_pass'] == None:
+        error_msg[2] = 'Поле не может быть пустым'
+    error_check = check_nulls(error_msg)
+    if error_check == False:
+        return render_template('users/new_pass.html', user_pass=params, error_msg=error_msg, user_id=user_id)
+
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        cursor.execute('SELECT password_hash FROM users WHERE id=%s;', (user_id,))
+        old_pass = cursor.fetchone()
+
+    old_pass_h = hashlib.new('sha256')
+    old_pass_h.update(params['old_pass'].encode('utf-8'))
+
+    if old_pass_h.hexdigest() != old_pass.password_hash:
+        error_msg[0] = 'Пароль не совпадает со старым'
+    error_msg[1] = check_pass(params['new_pass'])
+    if params['new_pass'] != params['r_new_pass']:
+        error_msg[2] = 'Пароли не совпадают'
+    
+    error_check = check_nulls(error_msg)
+    if error_check == False:
+        return render_template('users/new_pass.html', user_pass=params, error_msg=error_msg, user_id=user_id)
+    
+    params['id'] = user_id
+
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try:
+            cursor.execute(
+                ('UPDATE users SET password_hash=SHA2(%(new_pass)s, 256) WHERE id = %(id)s;'), params)
+            mysql.connection.commit()
+        except connector.Error:
+            flash('Ошибка сохранения', 'danger')
+            return render_template('users/new_pass.html', user_pass=params, error_msg=error_msg, user_id=user_id)
+
+    flash('Пароль успешно изменен.', 'success')
+    return redirect(url_for('index'))
