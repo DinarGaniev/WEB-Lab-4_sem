@@ -19,6 +19,7 @@ app.config.from_pyfile('config.py')
 mysql = MySQL(app)
 
 CREATE_PARAMS = ['login', 'password', 'first_name', 'last_name', 'middle_name', 'role_id']
+UPDATE_PARAMS = ['first_name', 'last_name', 'middle_name', 'role_id']
 def request_params(params_list):
     params = {}
     for param_name in params_list:
@@ -27,7 +28,7 @@ def request_params(params_list):
 
 def load_roles():
     with mysql.connection.cursor(named_tuple=True) as cursor:
-        cursor.execute('SELECT * FROM roles;')
+        cursor.execute('SELECT id, name FROM roles;')
         roles = cursor.fetchall()
     return roles
 class User(UserMixin):
@@ -80,6 +81,7 @@ def users():
     return render_template('users/index.html', users=users)
 
 @app.route('/users/new')
+@login_required
 def new():
     return render_template('users/new.html', user={}, roles=load_roles())
 
@@ -87,11 +89,12 @@ def new():
 @login_required
 def create():
     params = request_params(CREATE_PARAMS)
+    params['role_id'] = int(params['role_id']) if params['role_id'] else None
     with mysql.connection.cursor(named_tuple=True) as cursor:
         try: 
             cursor.execute(
                 ('INSERT INTO users (login, password_hash, last_name, first_name, middle_name, role_id)'
-                'VALUES (%(login)s, SHA2%(password)s, %(last_name)s, %(first_name)s, %(middle_name)s, %(role_id)s);'),
+                'VALUES (%(login)s, SHA2(%(password)s, 256), %(last_name)s, %(first_name)s, %(middle_name)s, %(role_id)s);'),
                 params
             )
             mysql.connection.commit()
@@ -99,4 +102,50 @@ def create():
             flash('Введены некорректные данные. Ошибка сохранения', 'danger')
             return render_template('users/new.html', user=params, roles=load_roles())
     flash(f"Пользлватель {params.get('login')} был успешно создан", 'success')
+    return redirect(url_for('users'))
+
+@app.route('/users/<int:user_id>')
+def show(user_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        cursor.execute('SELECT * FROM users WHERE id=%s;', (user_id,))
+        user = cursor.fetchone()
+    return render_template('users/show.html', user=user)
+
+@app.route('/users/<int:user_id>/edit')
+@login_required
+def edit(user_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        cursor.execute('SELECT * FROM users WHERE id=%s;', (user_id,))
+        user = cursor.fetchone()
+    return render_template('users/edit.html', user=user, roles=load_roles())
+
+@app.route('/users/<int:user_id>/update', methods=['POST'])
+@login_required
+def update(user_id):
+    params = request_params(UPDATE_PARAMS)
+    params['role_id'] = int(params['role_id']) if params['role_id'] else None
+    params['id'] = user_id
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try: 
+            cursor.execute(
+                ('UPDATE users SET last_name=%(last_name)s, first_name=%(first_name)s, ' 
+                'middle_name=%(middle_name)s, role_id=%(role_id)s WHERE id = %(id)s;'), params)
+            mysql.connection.commit()
+        except connector.Error:
+            flash('Введены некорректные данные. Ошибка сохранения', 'danger')
+            return render_template('users/edit.html', user=params, roles=load_roles())
+    flash("Пользователь был успешно обновлён!", 'success')
+    return redirect(url_for('show', user_id=user_id))
+
+@app.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+def delete(user_id):
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        try: 
+            cursor.execute('DELETE FROM users WHERE id=%s;', (user_id,))
+            mysql.connection.commit()
+        except connector.Error:
+            flash('Не удалось удалить пользователя', 'danger')
+            return redirect(url_for('users'))
+    flash("Пользователь был успешно удалён!", 'success')
     return redirect(url_for('users'))
