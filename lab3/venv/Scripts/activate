@@ -28,6 +28,7 @@ deactivate () {
     fi
 
     unset VIRTUAL_ENV
+    unset VIRTUAL_ENV_PROMPT
     if [ ! "${1:-}" = "nondestructive" ] ; then
     # Self destruct!
         unset -f deactivate
@@ -54,22 +55,10 @@ fi
 
 if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then
     _OLD_VIRTUAL_PS1="${PS1:-}"
-<<<<<<< HEAD:lab3/venv/Scripts/activate
     PS1="(venv) ${PS1:-}"
-=======
-    if [ "x(venv) " != x ] ; then
-	PS1="(venv) ${PS1:-}"
-    else
-    if [ "`basename \"$VIRTUAL_ENV\"`" = "__" ] ; then
-        # special case for Aspen magic directories
-        # see https://aspen.io/
-        PS1="[`basename \`dirname \"$VIRTUAL_ENV\"\``] $PS1"
-    else
-        PS1="(`basename \"$VIRTUAL_ENV\"`)$PS1"
-    fi
-    fi
->>>>>>> 2586b755e98d9480074c809bd810e58dfcbf8e43:lab3/venv/bin/activate
     export PS1
+    VIRTUAL_ENV_PROMPT="(venv) "
+    export VIRTUAL_ENV_PROMPT
 fi
 
 # This should detect bash and zsh, which have a hash command that must
