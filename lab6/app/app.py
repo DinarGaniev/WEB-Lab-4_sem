@@ -25,11 +25,11 @@ app.register_blueprint(auth_bp)
 
 init_login_manager(app)
 
-from models import Category, User
+from models import Category
 
 @app.route('/')
 def index():
-    categories = []
+    categories = Category.query.all()
     return render_template(
         'index.html', 
         categories=categories,
