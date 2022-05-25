@@ -1,5 +1,5 @@
 # from dataclasses import fields
-from fileinput import filename
+from flask_login import current_user
 import math
 import io
 import datetime
@@ -26,23 +26,44 @@ def generate_report(records):
 @bp.route('/logs')
 def logs():
     page = request.args.get('page', 1, type=int)
+    if current_user.can('view_stat_full'):
+        query = ('SELECT visit_logs.*, users.last_name, users.first_name, users.middle_name' 
+            ' FROM visit_logs LEFT JOIN users ON visit_logs.user_id = users.id' 
+            ' ORDER BY visit_logs.created_at DESC' 
+            ' LIMIT %s'
+            ' OFFSET %s;')
+        query_params = (PER_PAGE, PER_PAGE*(page-1))
+
+        count_query = ('SELECT COUNT(*) AS count from visit_logs;')
+        count_query_params = ()
+
+    else:
+        query = ('SELECT visit_logs.*, users.last_name, users.first_name, users.middle_name' 
+            ' FROM visit_logs LEFT JOIN users ON visit_logs.user_id = users.id WHERE users.id = %s' 
+            ' ORDER BY visit_logs.created_at DESC' 
+            ' LIMIT %s'
+            ' OFFSET %s;')
+        query_params = (current_user.id, PER_PAGE, PER_PAGE*(page-1))
+
+        count_query = ('SELECT COUNT(*) AS count from visit_logs WHERE user_id = %s;')
+        count_query_params = (current_user.id, )
     with mysql.connection.cursor(named_tuple=True) as cursor:
-        cursor.execute('SELECT COUNT(*) AS count FROM visit_logs')
+        cursor.execute(query, query_params)
+        records = cursor.fetchall()
+
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        cursor.execute(count_query, count_query_params)   
         total_count = cursor.fetchone().count
     total_pages = math.ceil(total_count/PER_PAGE)
-    with mysql.connection.cursor(named_tuple=True) as cursor:
-        cursor.execute(('SELECT visit_logs.*, users.last_name, users.first_name, users.middle_name '
-                        'FROM visit_logs LEFT JOIN users ON visit_logs.user_id = users.id ORDER BY visit_logs.created_at DESC '
-                        'LIMIT %s OFFSET %s;'), (PER_PAGE, PER_PAGE*(page - 1)))
-        records = cursor.fetchall()
+
     return render_template('visits/logs.html', records=records, page=page, total_pages=total_pages)
 
 @bp.route('/stats/users')
 def users_stat():
-    query = ('SELECT users.last_name, users.first_name, users.middle_name, COUNT(*) AS count '
-            'FROM users RIGHT visit_logs ON visit_logs.user_id = users.id '
+    query = (('SELECT users.last_name, users.first_name, users.middle_name, COUNT(*) AS count '
+            'FROM users RIGHT JOIN visit_logs ON visit_logs.user_id = users.id '
             'GROUP BY visit_logs.user_id '
-            'ORDER BY count DESC;')
+            'ORDER BY count DESC;'))
 
     with mysql.connection.cursor(named_tuple=True) as cursor:
         cursor.execute(query)
@@ -57,5 +78,18 @@ def users_stat():
 
 @bp.route('/stats/pages')
 def pages_stat():
-    records = []
+    query = ('SELECT DISTINCT(path), COUNT(*) as count' 
+            ' FROM visit_logs' 
+            ' GROUP BY path'
+            ' ORDER BY count DESC;')
+
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        cursor.execute(query)
+        records = cursor.fetchall()
+
+    if request.args.get('download_csv'):
+        f = generate_report(records)
+        filename = datetime.datetime.now().strftime('%d_%m_%y_%H_%M_%S') + '_pages_stat.csv'
+        return send_file(f, mimetype='text/csv', as_attachment=True, attachment_filename=filename)
+        
     return render_template('visits/pages_stat.html', records=records)
