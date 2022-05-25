@@ -255,13 +255,13 @@ def delete(user_id):
     flash("Пользователь был успешно удалён!", 'success')
     return redirect(url_for('users'))
 
-@app.route('/users/<int:user_id>/new_pass')
+@app.route('/users/new_pass')
 @login_required
 def new_pass():
     user_id = current_user.id
     return render_template('users/new_pass.html', error_msg=['', '', ''], user_id=user_id, user_pass={})
 
-@app.route('/users/<int:user_id>/change_pass', methods=['POST'])
+@app.route('/users/change_pass', methods=['POST'])
 @login_required
 def change_pass():
     user_id = current_user.id
@@ -274,19 +274,21 @@ def change_pass():
         error_msg[1] = 'Поле не может быть пустым'
     if params['r_new_pass'] == None:
         error_msg[2] = 'Поле не может быть пустым'
-    error_check = check_nulls(error_msg)
-    if error_check == False:
-        return render_template('users/new_pass.html', user_pass=params, error_msg=error_msg, user_id=user_id)
+        
+    # error_check = check_nulls(error_msg)
+    # if error_check == False:
+    #     return render_template('users/new_pass.html', user_pass=params, error_msg=error_msg, user_id=user_id)
 
     with mysql.connection.cursor(named_tuple=True) as cursor:
         cursor.execute('SELECT password_hash FROM users WHERE id=%s;', (user_id,))
         old_pass = cursor.fetchone()
 
-    old_pass_h = hashlib.new('sha256')
-    old_pass_h.update(params['old_pass'].encode('utf-8'))
+    if params['old_pass'] != None:
+        old_pass_h = hashlib.new('sha256')
+        old_pass_h.update(params['old_pass'].encode('utf-8'))
+        if old_pass_h.hexdigest() != old_pass.password_hash:
+            error_msg[0] = 'Пароль не совпадает со старым'
 
-    if old_pass_h.hexdigest() != old_pass.password_hash:
-        error_msg[0] = 'Пароль не совпадает со старым'
     error_msg[1] = check_pass(params['new_pass'])
     if params['new_pass'] != params['r_new_pass']:
         error_msg[2] = 'Пароли не совпадают'
@@ -294,8 +296,7 @@ def change_pass():
     error_check = check_nulls(error_msg)
     if error_check == False:
         return render_template('users/new_pass.html', user_pass=params, error_msg=error_msg, user_id=user_id)
-    
-    params['id'] = user_id
+
 
     with mysql.connection.cursor(named_tuple=True) as cursor:
         try:

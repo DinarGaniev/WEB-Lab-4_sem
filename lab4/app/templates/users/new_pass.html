@@ -2,5 +2,5 @@
 {% from 'users/form_change_pass.html' import render_change_pass_form %}
 {% block content %}
     <h1>Смена пароля</h1>
-    {{ render_change_pass_form(url_for('change_pass', user_id=user_id), error_msg, user_pass) }}
+    {{ render_change_pass_form(url_for('change_pass'), error_msg, user_pass) }}
 {% endblock %}
