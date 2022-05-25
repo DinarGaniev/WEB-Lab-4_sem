@@ -1,6 +1,6 @@
 from collections import namedtuple
 from flask import Flask, render_template, session, request, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin,  login_user, logout_user, login_required
+from flask_login import LoginManager, UserMixin,  login_user, logout_user, login_required, current_user
 from mysql_db import MySQL
 import mysql.connector as connector
 import hashlib
@@ -39,23 +39,20 @@ def check_login_req(login):
         return False
 
 def check_pass(passw):
-    err_msg = ''
+    error_msg = ''
     if passw == None:
         return 'Поле не может быть пустым'
-    check_pass_eq = 0
     if not check_pass_len(passw):
-        check_pass_eq = check_pass_eq + 1
+        error_msg = error_msg + 'Пароль должен содержать не менее 8 символов и не более 128 символов'
     if not check_pass_oneletter(passw):
-        check_pass_eq = check_pass_eq + 1
+        error_msg = error_msg + 'Пароль должен содержать не менее 1 заглавной буквы и сточной буквы'
     if not check_pass_digit(passw):
-        check_pass_eq = check_pass_eq + 1
+        error_msg = error_msg + 'Пароль должен содержать не менее 1 цифры'
     if not check_pass_specsymb(passw):
-        check_pass_eq = check_pass_eq + 1
+        error_msg = error_msg + 'Пароль может состоять только латинских или кириллических букв, цифр и символов: ~!?@#$%^&*_-+()[]{}></\|\"\'.,:;'
     if ' ' in passw:
-        check_pass_eq = check_pass_eq + 1
-    if check_pass_eq != 0:
-        return 'Пароль не соответствует требованиям'
-    return err_msg
+        error_msg = error_msg + 'Пароль не должен содержать пробелов'
+    return error_msg
 
 
 def check_pass_len(passw):
@@ -260,12 +257,14 @@ def delete(user_id):
 
 @app.route('/users/<int:user_id>/new_pass')
 @login_required
-def new_pass(user_id):
+def new_pass():
+    user_id = current_user.id
     return render_template('users/new_pass.html', error_msg=['', '', ''], user_id=user_id, user_pass={})
 
 @app.route('/users/<int:user_id>/change_pass', methods=['POST'])
 @login_required
-def change_pass(user_id):
+def change_pass():
+    user_id = current_user.id
     params = request_params(CHANGE_PASS_PARAMS)
     error_msg = ['' for i in range(len(params))]
 
