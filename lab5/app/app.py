@@ -10,15 +10,15 @@ app.config.from_pyfile('config.py')
 
 mysql = MySQL(app)
 
+CREATE_PARAMS = ['login', 'password', 'first_name', 'last_name', 'middle_name', 'role_id']
+UPDATE_PARAMS = ['first_name', 'last_name', 'middle_name', 'role_id']
+
 from auth import init_login_manager, bp as auth_bp, check_rights
 from visits import bp as visits_bp
 
 init_login_manager(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(visits_bp)
-
-CREATE_PARAMS = ['login', 'password', 'first_name', 'last_name', 'middle_name', 'role_id']
-UPDATE_PARAMS = ['first_name', 'last_name', 'middle_name', 'role_id']
 
 @app.before_request
 def log_visit_info():
@@ -53,11 +53,16 @@ def index():
 
 @app.route('/users')
 def users():
-    # with mysql.connection.cursor(named_tuple=True) as cursor:
-    cursor = mysql.connection.cursor(named_tuple=True)
-    cursor.execute('SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id;')
-    users = cursor.fetchall()
-    cursor.close()
+    # cursor = mysql.connection.cursor(named_tuple=True)
+    # cursor.execute('SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id;')
+    # users = cursor.fetchall()
+    # cursor.close()
+    with mysql.connection.cursor(named_tuple=True) as cursor:
+        cursor.execute(
+            'SELECT users.*, roles.name AS role_name FROM users LEFT JOIN roles ON users.role_id = roles.id;'
+            )
+        users = cursor.fetchall()
+        
     return render_template('users/index.html', users=users)
 
 @app.route('/users/new')
@@ -111,18 +116,19 @@ def update(user_id):
     params = request_params(UPDATE_PARAMS)
     params['role_id'] = int(params['role_id']) if params['role_id'] else None
     params['id'] = user_id
-    if not current_user.can('assign_role'):
-        del params['role_id']
+
+    if not current_user.can('assign_role'): del params['role_id']
+
     with mysql.connection.cursor(named_tuple=True) as cursor:
-        try: 
+        try:
             cursor.execute((
-                f"UPDATE users SET {', '.join(['{0}=%({0})s'.format(k) for k, _ in params.items() if k != 'id'])}"  
-                'WHERE id = %(id)s;'), params)
+                f"UPDATE users SET {', '.join(['{0}=%({0})s'.format(k) for k, _ in params.items() if k != 'id'])} "
+                'WHERE id=%(id)s;'), params)
             mysql.connection.commit()
         except connector.Error:
             flash('Введены некорректные данные. Ошибка сохранения', 'danger')
             return render_template('users/edit.html', user=params, roles=load_roles())
-    flash("Пользователь был успешно обновлён!", 'success')
+    flash("Пользователь был успешно обновлен!", 'success')
     return redirect(url_for('show', user_id=user_id))
 
 @app.route('/users/<int:user_id>/delete', methods=['POST'])
