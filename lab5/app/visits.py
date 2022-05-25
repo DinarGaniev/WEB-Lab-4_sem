@@ -8,7 +8,7 @@ from app import mysql
 
 bp = Blueprint('visits', __name__, url_prefix='/visits')
 
-PER_PAGE = 5
+PER_PAGE = 10
 
 def convert_to_csv(records):
     fields = records[0]._fields
@@ -26,7 +26,7 @@ def generate_report(records):
 @bp.route('/logs')
 def logs():
     page = request.args.get('page', 1, type=int)
-    if current_user.can('view_stat_full'):
+    if current_user.is_admin:
         query = ('SELECT visit_logs.*, users.last_name, users.first_name, users.middle_name' 
             ' FROM visit_logs LEFT JOIN users ON visit_logs.user_id = users.id' 
             ' ORDER BY visit_logs.created_at DESC' 
