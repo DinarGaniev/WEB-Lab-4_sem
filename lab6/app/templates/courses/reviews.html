@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% from 'review_macro.html' import render_rows_reviews %}
+
+{% block content %}
+<h2 class="mt-3 text-center text-uppercase font-weight-bold">Отзывы по курсу "{{ courses.name }}"</h2>
+<div class="container d-flex w-75 justify-content-center flex-column">
+    <form method="POST" action="{{ url_for('courses.reviews_sort', course_id=courses.id) }}" enctype="multipart/form-data">
+
+        <div class="container mt-3 border">
+            <div class="row m-3">
+                <div class="col-md-12">
+                    <h6>Выберите, как отсортировать</h6>
+                    <select name="sort" id="sort" class="form-select">
+                        <option {% if req_form == 'new' %}selected{% endif %} value="new">Сначала новые</option>
+                        <option {% if req_form == 'old' %}selected{% endif %} value="old">Сначала старые</option>
+                        <option {% if req_form == 'good' %}selected{% endif %} value="good">Сначала положительные</option>
+                        <option {% if req_form == 'bad' %}selected{% endif %} value="bad">Сначала отрицательные</option>
+                    </select>
+                </div>         
+                <div class="col-md-12 text-center mt-3 align-items-center">
+                    <button type="submit" class="btn btn-dark">Сортировать</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {{ render_rows_reviews(reviews) }}
+    <!-- <div class="mb-5">
+    </div> -->
+</div>
+
+{% endblock %}

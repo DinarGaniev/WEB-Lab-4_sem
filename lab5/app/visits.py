@@ -1,10 +1,10 @@
 # from dataclasses import fields
-from flask_login import current_user
+from flask_login import current_user, login_required
 import math
 import io
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from app import mysql
+from app import mysql, check_rights
 
 bp = Blueprint('visits', __name__, url_prefix='/visits')
 
@@ -26,7 +26,7 @@ def generate_report(records):
 @bp.route('/logs')
 def logs():
     page = request.args.get('page', 1, type=int)
-    if current_user.is_admin:
+    if current_user.can('view_stat'):
         query = ('SELECT visit_logs.*, users.last_name, users.first_name, users.middle_name' 
             ' FROM visit_logs LEFT JOIN users ON visit_logs.user_id = users.id' 
             ' ORDER BY visit_logs.created_at DESC' 
@@ -58,6 +58,8 @@ def logs():
 
     return render_template('visits/logs.html', records=records, page=page, total_pages=total_pages)
 
+@login_required
+@check_rights('view_stat')
 @bp.route('/stats/users')
 def users_stat():
     query = (('SELECT users.last_name, users.first_name, users.middle_name, COUNT(*) AS count '
@@ -77,6 +79,8 @@ def users_stat():
     return render_template('visits/users_stat.html', records=records)
 
 @bp.route('/stats/pages')
+@login_required
+@check_rights('view_stat')
 def pages_stat():
     query = ('SELECT DISTINCT(path), COUNT(*) as count' 
             ' FROM visit_logs' 

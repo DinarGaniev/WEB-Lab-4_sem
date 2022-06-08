@@ -54,7 +54,6 @@ def check_pass(passw):
         error_msg = error_msg + 'Пароль не должен содержать пробелов'
     return error_msg
 
-
 def check_pass_len(passw):
     if len(passw) >= 8 and len(passw) <= 128:
         return True
@@ -86,10 +85,9 @@ def check_pass_digit(passw):
 def check_pass_specsymb(passw):
     check_str = '~!?@#$%^&*_-+()[]{}></\|\"\'.,:;'
     for i in passw:
-        if not check_pass_latkir_arabdigit(i) or i in check_str:
-            return True
-        else:
-            return False
+        if not (check_pass_latkir_arabdigit(i) or i in check_str):
+            return False 
+    return True
     
 
 def check_last(passw):
@@ -127,6 +125,7 @@ def load_roles():
         cursor.execute('SELECT id, name FROM roles;')
         roles = cursor.fetchall()
     return roles
+    
 class User(UserMixin):
     def __init__(self, user_id, login):
         super().__init__()
@@ -268,11 +267,11 @@ def change_pass():
     params = request_params(CHANGE_PASS_PARAMS)
     error_msg = ['' for i in range(len(params))]
 
-    if params['old_pass'] == None:
+    if params['old_pass'] is None:
         error_msg[0] = 'Поле не может быть пустым'
-    if params['new_pass'] == None:
+    if params['new_pass'] is None:
         error_msg[1] = 'Поле не может быть пустым'
-    if params['r_new_pass'] == None:
+    if params['r_new_pass'] is None:
         error_msg[2] = 'Поле не может быть пустым'
         
     # error_check = check_nulls(error_msg)
