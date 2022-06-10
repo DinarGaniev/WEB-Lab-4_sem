@@ -1,7 +1,7 @@
 import hashlib
 import uuid
 import os
-from models import Course, Image
+from models import Course, Image, Review
 from werkzeug.utils import secure_filename
 from app import db, app
 
@@ -47,3 +47,19 @@ class ImageServer:
         self.file.seek(0)
         return Image.query.filter(Image.md5_hash==self.md5_hash).first()
         # return Image.query.filter_by(md5_hash=self.md5_hash).first()
+    
+class ReviewsFilter:
+    def __init__(self, course_id):
+        self.query = Review.query.filter_by(course_id=course_id)
+
+    def perform_date_desc(self):
+        return self.query.order_by(Review.created_at.desc())
+
+    def perform_date_asc(self):
+        return self.query.order_by(Review.created_at.asc())
+
+    def perform_rating_desc(self):
+        return self.query.order_by(Review.rating.desc())
+
+    def perform_rating_asc(self):
+        return self.query.order_by(Review.rating.asc())

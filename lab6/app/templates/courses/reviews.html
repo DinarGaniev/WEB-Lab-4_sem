@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% from 'review_macro.html' import render_rows_reviews %}
+{% from 'pagination.html' import render_pagination %}
 
 {% block content %}
 <h2 class="mt-3 text-center text-uppercase font-weight-bold">Отзывы по курсу "{{ courses.name }}"</h2>
@@ -25,8 +26,9 @@
     </form>
 
     {{ render_rows_reviews(reviews) }}
-    <!-- <div class="mb-5">
-    </div> -->
+    <div class="mb-5">
+        {{ render_pagination(pagination, request.endpoint, search_params) }}
+    </div>
 </div>
 
 {% endblock %}
